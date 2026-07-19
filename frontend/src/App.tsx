@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { usePortfolio } from './hooks/usePortfolio';
 import { AddHoldingPage } from './pages/AddHolding';
 import { StorageLocationsPage } from './pages/StorageLocations';
+import { PortfolioPage } from './pages/Portfolio';
 import type { MetalBreakdown, PortfolioSummary, SpotPriceMeta } from './lib/api';
 
 type Tab = 'dashboard' | 'portfolio' | 'add' | 'vaults' | 'settings';
