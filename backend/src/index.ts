@@ -6,6 +6,13 @@ import { getDb } from './db/connection.js';
 import holdingsRouter from './routes/holdings.js';
 import storageLocationsRouter from './routes/storageLocations.js';
 import portfolioRouter from './routes/portfolio.js';
+import {
+  getLatestSpotPrices,
+  getSpotPriceMeta,
+  refreshSpotPrices,
+  seedSpotPrices,
+  startAutoRefresh,
+} from './services/spotPriceService.js';
 
 const app = express();
 const PORT = parseInt(process.env.BACKEND_PORT || '3001', 10);
@@ -17,6 +24,12 @@ app.use(express.json());
 // ─── Initialize Database ─────────────────────────────────────
 initializeSchema();
 seedDemoData();
+
+// ─── Initialize Spot Prices ──────────────────────────────────
+// Seed fallback prices if DB is empty, then start live refresh
+seedSpotPrices().then(() => {
+  startAutoRefresh();
+});
 
 // ─── Health Check ──────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
@@ -33,34 +46,45 @@ app.get('/api/health', (_req, res) => {
 // ─── Spot Prices ───────────────────────────────────────────────
 app.get('/api/spot', (_req, res) => {
   try {
-    const db = getDb();
-    const rows = db.prepare(`
-      SELECT metal, price_per_oz_cents, currency, timestamp
-      FROM spot_prices
-      WHERE (metal, timestamp) IN (
-        SELECT metal, MAX(timestamp) FROM spot_prices GROUP BY metal
-      )
-    `).all() as Record<string, unknown>[];
+    const prices = getLatestSpotPrices();
+    const meta = getSpotPriceMeta();
 
-    const data = rows.map((r) => ({
-      metal: r.metal,
-      price: (r.price_per_oz_cents as number) / 100,
-      currency: r.currency,
-      timestamp: r.timestamp,
-    }));
-
-    res.json({ success: true, data });
-  } catch {
-    // Fallback to static prices if DB fails
     res.json({
       success: true,
-      data: [
-        { metal: 'gold', price: 2420.50, currency: 'USD', timestamp: new Date().toISOString() },
-        { metal: 'silver', price: 29.87, currency: 'USD', timestamp: new Date().toISOString() },
-        { metal: 'platinum', price: 985.30, currency: 'USD', timestamp: new Date().toISOString() },
-        { metal: 'palladium', price: 925.00, currency: 'USD', timestamp: new Date().toISOString() },
-      ],
+      data: prices,
+      meta: {
+        lastFetchTimestamp: meta.lastFetchTimestamp,
+        lastFetchSuccess: meta.lastFetchSuccess,
+        apiConfigured: meta.apiConfigured,
+      },
     });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
+// POST /api/spot/refresh — manually trigger a price refresh
+app.post('/api/spot/refresh', async (_req, res) => {
+  try {
+    const prices = await refreshSpotPrices();
+    const meta = getSpotPriceMeta();
+
+    res.json({
+      success: true,
+      data: prices,
+      meta: {
+        lastFetchTimestamp: meta.lastFetchTimestamp,
+        lastFetchSuccess: meta.lastFetchSuccess,
+        apiConfigured: meta.apiConfigured,
+      },
+      message: prices.length > 0
+        ? `Refreshed ${prices.length} metal prices`
+        : 'No prices fetched — check METALS_API_KEY or API availability',
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    res.status(500).json({ success: false, error: msg });
   }
 });
 
