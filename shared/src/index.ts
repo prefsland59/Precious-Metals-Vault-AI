@@ -67,6 +67,13 @@ export interface Holding {
   notes?: string;
   grade?: string;        // e.g., "MS-70", "PF-69"
   images?: string[];
+  dealer?: string;
+  totalCost?: number;
+  condition?: string;
+  certificationNumber?: string;
+  slabCompany?: string;
+  serialNumber?: string;
+  documents?: string[];
   createdAt: string;
   updatedAt: string;
 }

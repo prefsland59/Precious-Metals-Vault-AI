@@ -33,6 +33,13 @@ function rowToHolding(row: Record<string, unknown>): Holding {
     notes: (r.notes as string) || undefined,
     grade: (r.estimatedGrade as string) || undefined,
     images: typeof r.images === 'string' ? JSON.parse(r.images as string) : (r.images || []),
+    dealer: (r.dealer as string) || undefined,
+    totalCost: r.totalCostCents !== undefined ? (r.totalCostCents as number) / 100 : undefined,
+    condition: (r.condition as string) || undefined,
+    certificationNumber: (r.certificationNumber as string) || undefined,
+    slabCompany: (r.slabCompany as string) || undefined,
+    serialNumber: (r.serialNumber as string) || undefined,
+    documents: typeof r.documents === 'string' ? JSON.parse(r.documents as string) : (r.documents || []),
     createdAt: r.createdAt as string,
     updatedAt: r.updatedAt as string,
   };
