@@ -1,0 +1,63 @@
+@import 'tailwindcss';
+
+/* ─── Precious Metals Vault AI — Premium Dark Theme ─────────── */
+
+@theme {
+  /* Core palette */
+  --color-black: #0a0a0a;
+  --color-charcoal: #1a1a2e;
+  --color-charcoal-light: #2d2d44;
+  --color-silver: #c0c0c0;
+  --color-silver-light: #e0e0e0;
+  --color-silver-dark: #8a8a8a;
+  --color-gold: #d4a843;
+  --color-gold-light: #f5c842;
+  --color-gold-dark: #b8922e;
+  --color-platinum: #e5e4e2;
+  --color-platinum-dark: #a9a9a9;
+
+  /* Semantic tokens */
+  --color-surface: #1a1a2e;
+  --color-surface-hover: #2d2d44;
+  --color-border: #2d2d44;
+  --color-text-primary: #e0e0e0;
+  --color-text-secondary: #8a8a8a;
+  --color-accent: #d4a843;
+  --color-accent-hover: #f5c842;
+  --color-success: #4ade80;
+  --color-danger: #f87171;
+
+  /* Font */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* ─── Base Styles ────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-black);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-black);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-charcoal-light);
+  border-radius: 3px;
+}
+
+/* ─── Selection ──────────────────────────────────────────────── */
+::selection {
+  background: rgba(212, 168, 67, 0.3);
+  color: var(--color-text-primary);
+}
