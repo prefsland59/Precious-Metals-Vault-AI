@@ -55,11 +55,12 @@ function calculateCostBasis(h: Holding): number {
 
 interface PortfolioPageProps {
   onNavigate: (tab: string) => void;
+  onSelectHolding?: (id: string) => void;
 }
 
 // ─── Component ────────────────────────────────────────────────────
 
-export function PortfolioPage({ onNavigate }: PortfolioPageProps) {
+export function PortfolioPage({ onNavigate, onSelectHolding }: PortfolioPageProps) {
   const { data, loading, error, refetch } = useHoldingsData();
 
   // ─── Filter/Sort State ──────────────────────────────────────────
@@ -391,7 +392,13 @@ export function PortfolioPage({ onNavigate }: PortfolioPageProps) {
               holding={h}
               spotPrice={spotPrices[h.metal] || 0}
               locationName={locationMap.get(h.storageLocation) || 'Unallocated'}
-              onClick={() => setSelectedHolding(h)}
+              onClick={() => {
+                if (onSelectHolding) {
+                  onSelectHolding(h.id);
+                } else {
+                  setSelectedHolding(h);
+                }
+              }}
             />
           ))}
         </div>

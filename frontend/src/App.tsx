@@ -3,6 +3,7 @@ import { usePortfolio } from './hooks/usePortfolio';
 import { AddHoldingPage } from './pages/AddHolding';
 import { StorageLocationsPage } from './pages/StorageLocations';
 import { PortfolioPage } from './pages/Portfolio';
+import { HoldingDetailPage } from './pages/HoldingDetail';
 import type { MetalBreakdown, PortfolioSummary, SpotPriceMeta } from './lib/api';
 
 type Tab = 'dashboard' | 'portfolio' | 'add' | 'vaults' | 'settings';
@@ -45,6 +46,22 @@ const fmtOz = (n: number) => n.toFixed(2) + ' oz';
 // ─── App ─────────────────────────────────────────────────────────
 export function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+  const [selectedHoldingId, setSelectedHoldingId] = useState<string | null>(null);
+
+  // Handle navigating to holding detail
+  const handleSelectHolding = (id: string) => {
+    setSelectedHoldingId(id);
+  };
+
+  const handleBackToPortfolio = () => {
+    setSelectedHoldingId(null);
+  };
+
+  // Handle tab navigation — clear detail view when switching tabs
+  const handleTabChange = (tab: Tab) => {
+    setActiveTab(tab);
+    setSelectedHoldingId(null);
+  };
 
   return (
     <div className="flex h-screen bg-black">
@@ -62,7 +79,7 @@ export function App() {
           {NAV_ITEMS.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => handleTabChange(item.id)}
               className={
                 'w-full flex items-center gap-3 px-5 py-3 text-sm transition-colors ' +
                 (activeTab === item.id
@@ -83,18 +100,38 @@ export function App() {
 
       {/* ─── Main Content ────────────────────────────────────── */}
       <main className="flex-1 overflow-y-auto">
-        <TabContent tab={activeTab} onNavigate={setActiveTab} />
+        {/* Show holding detail when an ID is selected */}
+        {selectedHoldingId ? (
+          <HoldingDetailPage
+            holdingId={selectedHoldingId}
+            onBack={handleBackToPortfolio}
+          />
+        ) : (
+          <TabContent
+            tab={activeTab}
+            onNavigate={handleTabChange}
+            onSelectHolding={handleSelectHolding}
+          />
+        )}
       </main>
     </div>
   );
 }
 
-function TabContent({ tab, onNavigate }: { tab: Tab; onNavigate: (tab: Tab) => void }) {
+function TabContent({
+  tab,
+  onNavigate,
+  onSelectHolding,
+}: {
+  tab: Tab;
+  onNavigate: (tab: Tab) => void;
+  onSelectHolding: (id: string) => void;
+}) {
   switch (tab) {
     case 'dashboard':
       return <DashboardPage />;
     case 'portfolio':
-      return <PlaceholderPage title="Portfolio" description="Your precious metals holdings will appear here." />;
+      return <PortfolioPage onNavigate={onNavigate} onSelectHolding={onSelectHolding} />;
     case 'add':
       return <AddHoldingPage onSuccess={() => onNavigate('portfolio')} />;
     case 'vaults':
