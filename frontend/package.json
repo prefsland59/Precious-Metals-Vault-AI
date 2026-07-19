@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "start": "vite preview --port 3000 --host true",
+    "start": "vite preview --port 3000 --host 0.0.0.0",
     "publish": "bash ./publish.sh"
   },
   "dependencies": {
