@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { usePortfolio } from './hooks/usePortfolio';
+import { AddHoldingPage } from './pages/AddHolding';
 import type { MetalBreakdown, PortfolioSummary } from './lib/api';
 
 type Tab = 'dashboard' | 'portfolio' | 'add' | 'vaults' | 'settings';
@@ -79,20 +80,20 @@ export function App() {
 
       {/* ─── Main Content ────────────────────────────────────── */}
       <main className="flex-1 overflow-y-auto">
-        <TabContent tab={activeTab} />
+        <TabContent tab={activeTab} onNavigate={setActiveTab} />
       </main>
     </div>
   );
 }
 
-function TabContent({ tab }: { tab: Tab }) {
+function TabContent({ tab, onNavigate }: { tab: Tab; onNavigate: (tab: Tab) => void }) {
   switch (tab) {
     case 'dashboard':
       return <DashboardPage />;
     case 'portfolio':
       return <PlaceholderPage title="Portfolio" description="Your precious metals holdings will appear here." />;
     case 'add':
-      return <PlaceholderPage title="Add Item" description="Add holdings manually or use AI camera scan." />;
+      return <AddHoldingPage onSuccess={() => onNavigate('portfolio')} />;
     case 'vaults':
       return <PlaceholderPage title="Vaults" description="Manage your storage locations." />;
     case 'settings':
