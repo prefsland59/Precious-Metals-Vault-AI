@@ -49,6 +49,29 @@ export interface LocationBreakdown {
   count: number;
 }
 
+// ─── Storage Location Detail (from GET /api/storage-locations/:id) ─
+export interface HoldingSummaryItem {
+  id: string;
+  name: string;
+  metal: string;
+  weightOunces: number;
+  valueUsd: number;
+}
+
+export interface StorageLocationDetail {
+  id: string;
+  name: string;
+  description?: string;
+  type: 'home' | 'bank_vault' | 'private_vault' | 'safe' | 'other';
+  insuranceCoverage?: number;
+  notes?: string;
+  createdAt: string;
+  holdings: HoldingSummaryItem[];
+  totalValueUsd: number;
+  totalOunces: number;
+  itemCount: number;
+}
+
 export interface PortfolioSummary {
   totalValueUsd: number;
   costBasisUsd: number;

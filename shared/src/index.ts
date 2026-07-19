@@ -72,12 +72,48 @@ export interface Holding {
 }
 
 // ─── Storage Location ──────────────────────────────────────────
+export type LocationType = 'home' | 'bank_vault' | 'private_vault' | 'safe' | 'other';
+
+export const LOCATION_TYPE_LABELS: Record<LocationType, string> = {
+  home: 'Home',
+  bank_vault: 'Bank Vault',
+  private_vault: 'Private Vault',
+  safe: 'Safe',
+  other: 'Other',
+};
+
+export const LOCATION_TYPE_ICONS: Record<LocationType, string> = {
+  home: '🏠',
+  bank_vault: '🏦',
+  private_vault: '🔒',
+  safe: '🗄️',
+  other: '📦',
+};
+
 export interface StorageLocation {
   id: string;
   name: string;
   description?: string;
-  type: 'home' | 'bank_vault' | 'private_vault' | 'safe' | 'other';
+  type: LocationType;
+  insuranceCoverage?: number;
+  notes?: string;
   createdAt: string;
+}
+
+// ─── Storage Location Detail (with holdings & summary) ──────────
+export interface HoldingSummary {
+  id: string;
+  name: string;
+  metal: string;
+  weightOunces: number;
+  valueUsd: number;
+}
+
+export interface StorageLocationDetail extends StorageLocation {
+  holdings: HoldingSummary[];
+  totalValueUsd: number;
+  totalOunces: number;
+  itemCount: number;
 }
 
 // ─── Spot Price ────────────────────────────────────────────────

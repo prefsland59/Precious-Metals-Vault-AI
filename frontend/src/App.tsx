@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { usePortfolio } from './hooks/usePortfolio';
 import { AddHoldingPage } from './pages/AddHolding';
+import { StorageLocationsPage } from './pages/StorageLocations';
 import type { MetalBreakdown, PortfolioSummary } from './lib/api';
 
 type Tab = 'dashboard' | 'portfolio' | 'add' | 'vaults' | 'settings';
@@ -95,7 +96,7 @@ function TabContent({ tab, onNavigate }: { tab: Tab; onNavigate: (tab: Tab) => v
     case 'add':
       return <AddHoldingPage onSuccess={() => onNavigate('portfolio')} />;
     case 'vaults':
-      return <PlaceholderPage title="Vaults" description="Manage your storage locations." />;
+      return <StorageLocationsPage />;
     case 'settings':
       return <PlaceholderPage title="Settings" description="Account preferences and subscription management." />;
   }
