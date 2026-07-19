@@ -139,24 +139,6 @@ export function seedDemoData(): void {
       '[]',
     );
 
-    // ─── Spot Prices ──
-    const spotPrices = [
-      { metal: 'gold', price: 242050 },
-      { metal: 'silver', price: 2987 },
-      { metal: 'platinum', price: 98530 },
-      { metal: 'palladium', price: 92500 },
-      { metal: 'copper', price: 28 },
-    ];
-
-    const insertSpot = db.prepare(`
-      INSERT INTO spot_prices (metal, price_per_oz_cents, currency, source, timestamp)
-      VALUES (?, ?, 'USD', 'seed', datetime('now'))
-    `);
-
-    for (const sp of spotPrices) {
-      insertSpot.run(sp.metal, sp.price);
-    }
-
     // ─── Transactions ──
     const holdings = [
       { id: 'holding-001', qty: 2, ppu: 210000, total: 420000, date: '2024-03-15', notes: 'Initial gold purchase' },

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { usePortfolio } from './hooks/usePortfolio';
 import { AddHoldingPage } from './pages/AddHolding';
 import { StorageLocationsPage } from './pages/StorageLocations';
-import type { MetalBreakdown, PortfolioSummary } from './lib/api';
+import type { MetalBreakdown, PortfolioSummary, SpotPriceMeta } from './lib/api';
 
 type Tab = 'dashboard' | 'portfolio' | 'add' | 'vaults' | 'settings';
 
@@ -37,9 +37,9 @@ const METAL_SORT = ['gold', 'silver', 'platinum', 'palladium', 'copper'];
 const fmtUSD = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
-const fmtPct = (n: number) => `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`;
+const fmtPct = (n: number) => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
 
-const fmtOz = (n: number) => `${n.toFixed(2)} oz`;
+const fmtOz = (n: number) => n.toFixed(2) + ' oz';
 
 // ─── App ─────────────────────────────────────────────────────────
 export function App() {
@@ -62,11 +62,12 @@ export function App() {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-3 px-5 py-3 text-sm transition-colors ${
-                activeTab === item.id
+              className={
+                'w-full flex items-center gap-3 px-5 py-3 text-sm transition-colors ' +
+                (activeTab === item.id
                   ? 'bg-gold/10 text-gold border-r-2 border-gold'
-                  : 'text-silver hover:text-platinum hover:bg-surface-hover'
-              }`}
+                  : 'text-silver hover:text-platinum hover:bg-surface-hover')
+              }
             >
               <span className="text-base">{item.icon}</span>
               {item.label}
@@ -139,7 +140,7 @@ function DashboardPage() {
           {/* Metal Allocation Chart + Spot Prices row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <MetalAllocationChart metals={data.breakdown.byMetal} />
-            <SpotPricesPanel spotPrices={data.spotPrices} />
+            <SpotPricesPanel spotPrices={data.spotPrices} spotMeta={data.spotMeta} />
           </div>
 
           {/* Location & Category Breakdown */}
@@ -173,8 +174,8 @@ function StatCard({
     <div className="bg-charcoal border border-charcoal-light rounded-lg p-5 hover:border-gold/30 transition-colors">
       <p className="text-xs text-silver-dark uppercase tracking-wider mb-2">{label}</p>
       <p className="text-2xl font-bold text-platinum mb-1">{value}</p>
-      <p className={`text-sm ${positive ? 'text-green-400' : 'text-red-400'}`}>
-        {changeLabel ? `${changeLabel}: ` : ''}{change}
+      <p className={'text-sm ' + (positive ? 'text-green-400' : 'text-red-400')}>
+        {changeLabel ? changeLabel + ': ' : ''}{change}
       </p>
     </div>
   );
@@ -214,7 +215,7 @@ function MetalAllocationChart({ metals }: { metals: Record<string, MetalBreakdow
               <div
                 className="h-full rounded-full transition-all duration-700 ease-out"
                 style={{
-                  width: `${Math.max(entry.pctOfPortfolio, 0.5)}%`,
+                  width: Math.max(entry.pctOfPortfolio, 0.5) + '%',
                   backgroundColor: METAL_COLORS[entry.key] ?? '#555',
                 }}
               />
@@ -228,16 +229,38 @@ function MetalAllocationChart({ metals }: { metals: Record<string, MetalBreakdow
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  Spot Prices Panel
+//  Spot Prices Panel — with live timestamp and staleness indicators
 // ═══════════════════════════════════════════════════════════════════
-function SpotPricesPanel({ spotPrices }: { spotPrices: Record<string, number> }) {
+function SpotPricesPanel({
+  spotPrices,
+  spotMeta,
+}: {
+  spotPrices: Record<string, number>;
+  spotMeta?: SpotPriceMeta;
+}) {
   const entries = METAL_SORT.filter((m) => spotPrices[m] !== undefined);
 
   if (entries.length === 0) return null;
 
+  // Calculate staleness
+  const lastFetch = spotMeta?.lastFetchTimestamp;
+  const minutesAgo = lastFetch
+    ? Math.round((Date.now() - new Date(lastFetch).getTime()) / 60_000)
+    : null;
+  const isStale = minutesAgo !== null && minutesAgo > 15;
+  const isApiConfigured = spotMeta?.apiConfigured ?? false;
+
   return (
     <div className="bg-charcoal border border-charcoal-light rounded-lg p-6">
-      <h3 className="text-lg font-medium text-platinum mb-4">Live Spot Prices</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-medium text-platinum">Live Spot Prices</h3>
+        {!isApiConfigured && (
+          <span className="text-xs px-2 py-0.5 rounded bg-yellow-900/30 text-yellow-400 border border-yellow-700/40">
+            Offline mode
+          </span>
+        )}
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
         {entries.map((metal) => (
           <div
@@ -252,12 +275,38 @@ function SpotPricesPanel({ spotPrices }: { spotPrices: Record<string, number> })
             </p>
             <p className="text-xl font-semibold text-platinum">
               {spotPrices[metal] < 1
-                ? `$${spotPrices[metal].toFixed(2)}`
+                ? '$' + spotPrices[metal].toFixed(2)
                 : fmtUSD(spotPrices[metal])}
             </p>
             <p className="text-xs text-silver-dark">per oz</p>
           </div>
         ))}
+      </div>
+
+      {/* Timestamp & staleness */}
+      <div className="mt-4 pt-3 border-t border-charcoal-light">
+        {lastFetch ? (
+          <div className="flex items-center gap-2">
+            {isStale ? (
+              <span className="text-xs text-amber-400 flex items-center gap-1">
+                <span>⚠️</span>
+                <span>
+                  Updated {minutesAgo}m ago
+                  {!spotMeta?.lastFetchSuccess && ' (last fetch failed)'}
+                </span>
+              </span>
+            ) : (
+              <span className="text-xs text-silver-dark flex items-center gap-1">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" />
+                <span>
+                  Updated {minutesAgo}m ago
+                </span>
+              </span>
+            )}
+          </div>
+        ) : (
+          <p className="text-xs text-silver-dark">Using stored prices</p>
+        )}
       </div>
     </div>
   );

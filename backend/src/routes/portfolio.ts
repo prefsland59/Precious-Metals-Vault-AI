@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { getDb } from '../db/connection.js';
+import { getSpotPriceMeta } from '../services/spotPriceService.js';
 import type { ApiResponse } from '@pmvault/shared';
 
 const router = Router();
@@ -122,7 +123,10 @@ router.get('/summary', (req: Request, res: Response) => {
       spotPrices,
     };
 
-    const response: ApiResponse<PortfolioSummary> = { success: true, data: summary };
+    const response: ApiResponse<PortfolioSummary & { spotMeta: ReturnType<typeof getSpotPriceMeta> }> = {
+      success: true,
+      data: { ...summary, spotMeta: getSpotPriceMeta() },
+    };
     res.json(response);
   } catch (err) {
     const response: ApiResponse<null> = {

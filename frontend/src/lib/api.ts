@@ -85,4 +85,13 @@ export interface PortfolioSummary {
     byLocation: Record<string, LocationBreakdown>;
   };
   spotPrices: Record<string, number>;
+  spotMeta: SpotPriceMeta;
+}
+
+// ─── Spot Price Metadata ────────────────────────────────────────
+
+export interface SpotPriceMeta {
+  lastFetchTimestamp: string | null;
+  lastFetchSuccess: boolean;
+  apiConfigured: boolean;
 }
